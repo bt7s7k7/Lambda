@@ -54,8 +54,8 @@ export function parseCode(codeText: string) {
                     parent.type = TokenType.Application
                     parent.argument = newToken
                     stack.push(newToken)
-                } else if (parent.type == TokenType.Grouping) {
-                    parent.type = TokenType.Application
+                } else if (parent.type == TokenType.Grouping || parent.type == TokenType.Binding) {
+                    if (parent.type == TokenType.Grouping) parent.type = TokenType.Application
                     parent.body = newToken
                     stack.push(newToken)
                 } else if (parent.type == TokenType.Abstraction) {
@@ -93,8 +93,8 @@ export function parseCode(codeText: string) {
                         parent.argument = newToken
                         stack.push(newToken)
                         groupStack.push(stack.length)
-                    } else if (parent.type == TokenType.Grouping) {
-                        parent.type = TokenType.Application
+                    } else if (parent.type == TokenType.Grouping || parent.type == TokenType.Binding) {
+                        if (parent.type == TokenType.Grouping) parent.type = TokenType.Application
                         parent.body = newToken
                         stack.push(newToken)
                         groupStack.push(stack.length)
@@ -121,17 +121,17 @@ export function parseCode(codeText: string) {
 
             } else if (char == " ") {
                 // Ignore spaces
-            } else if (char = ">") {
+            } else if (char == ">") {
                 let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.Abstraction, code, body: null } as IToken
-
+                
                 if (stack.length != 0) {
                     let parent = stack[stack.length - 1]
                     if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
-                        parent.type = TokenType.Application
+                        if (parent.type == TokenType.Identifier) parent.type = TokenType.Application
                         parent.argument = newToken
                         stack.push(newToken)
-                    } else if (parent.type == TokenType.Grouping) {
-                        parent.type = TokenType.Application
+                    } else if (parent.type == TokenType.Grouping || parent.type == TokenType.Binding) {
+                        if (parent.type == TokenType.Grouping) parent.type = TokenType.Application
                         parent.body = newToken
                         stack.push(newToken)
                     } else if (parent.type == TokenType.Abstraction) {
@@ -147,8 +147,17 @@ export function parseCode(codeText: string) {
                 } else {
                     stack.push(newToken)
                 }
-
+                
                 stack.push(newToken)
+            } else if (char = "=") {
+                if (stack.length != 1) throw new Error("Binding must be used after one identifier")
+                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.Abstraction, code, body: null } as IToken
+                let ident = stack[0]
+                if (ident.type == TokenType.Identifier) {
+                    stack[0] = newToken
+                    newToken.argument = ident
+                } else throw new Error("Binding must be used after one identifier")
+                
             } else throw new Error("Invalid char at " + pos)
         }
     }
