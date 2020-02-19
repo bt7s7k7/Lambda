@@ -9,11 +9,11 @@ export interface ICode {
 }
 
 export enum TokenType {
-    identifier,
-    application,
-    abstraction,
-    grouping,
-    binding
+    Identifier,
+    Application,
+    Abstraction,
+    Grouping,
+    Binding
 }
 
 export interface IToken {
@@ -44,21 +44,21 @@ export function parseCode(codeText: string) {
 
     var finishIdent = () => {
         if (curr != "") {
-            let newToken = { start: currStart, end: pos, argument: null, type: TokenType.identifier, code, body: null } as IToken
+            let newToken = { start: currStart, end: pos, argument: null, type: TokenType.Identifier, code, body: null } as IToken
             currStart = -1
             curr = ""
 
             if (stack.length != 0) {
                 let parent = stack[stack.length - 1]
-                if (parent.type == TokenType.identifier || parent.type == TokenType.application) {
-                    parent.type = TokenType.application
+                if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
+                    parent.type = TokenType.Application
                     parent.argument = newToken
                     stack.push(newToken)
-                } else if (parent.type == TokenType.grouping) {
-                    parent.type = TokenType.application
+                } else if (parent.type == TokenType.Grouping) {
+                    parent.type = TokenType.Application
                     parent.body = newToken
                     stack.push(newToken)
-                } else if (parent.type == TokenType.abstraction) {
+                } else if (parent.type == TokenType.Abstraction) {
                     if (parent.argument == null) {
                         parent.argument = newToken
                     } else if (parent.body == null) {
@@ -84,21 +84,21 @@ export function parseCode(codeText: string) {
         } else {
             finishIdent()
             if (char == "(") {
-                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.grouping, code, body: null } as IToken
+                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.Grouping, code, body: null } as IToken
 
                 if (stack.length != 0) {
                     let parent = stack[stack.length - 1]
-                    if (parent.type == TokenType.identifier || parent.type == TokenType.application) {
-                        parent.type = TokenType.application
+                    if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
+                        parent.type = TokenType.Application
                         parent.argument = newToken
                         stack.push(newToken)
                         groupStack.push(stack.length)
-                    } else if (parent.type == TokenType.grouping) {
-                        parent.type = TokenType.application
+                    } else if (parent.type == TokenType.Grouping) {
+                        parent.type = TokenType.Application
                         parent.body = newToken
                         stack.push(newToken)
                         groupStack.push(stack.length)
-                    } else if (parent.type == TokenType.abstraction) {
+                    } else if (parent.type == TokenType.Abstraction) {
                         if (parent.argument == null) {
                             throw new Error("Can't use grouping in function argument")
                         } else {
@@ -122,19 +122,19 @@ export function parseCode(codeText: string) {
             } else if (char == " ") {
                 // Ignore spaces
             } else if (char = ">") {
-                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.abstraction, code, body: null } as IToken
+                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.Abstraction, code, body: null } as IToken
 
                 if (stack.length != 0) {
                     let parent = stack[stack.length - 1]
-                    if (parent.type == TokenType.identifier || parent.type == TokenType.application) {
-                        parent.type = TokenType.application
+                    if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
+                        parent.type = TokenType.Application
                         parent.argument = newToken
                         stack.push(newToken)
-                    } else if (parent.type == TokenType.grouping) {
-                        parent.type = TokenType.application
+                    } else if (parent.type == TokenType.Grouping) {
+                        parent.type = TokenType.Application
                         parent.body = newToken
                         stack.push(newToken)
-                    } else if (parent.type == TokenType.abstraction) {
+                    } else if (parent.type == TokenType.Abstraction) {
                         if (parent.argument == null) {
                             throw new Error("Can't use abstraction in function argument")
                         } else {
