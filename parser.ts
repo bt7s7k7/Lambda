@@ -37,26 +37,32 @@ export function parseCode(codeText: string) {
     var rootToken = code.rootToken
 
     var stack = [] as IToken[]
+    var groupStack = [] as number[]
     var curr = ""
     var currStart = -1
     let pos = 0
 
-    var finish = () => {
+    var finishIdent = () => {
         if (curr != "") {
             let newToken = { start: currStart, end: pos, argument: null, type: TokenType.identifier, code, body: null } as IToken
             currStart = -1
+            curr = ""
 
             if (stack.length != 0) {
                 let parent = stack[stack.length - 1]
-                if (parent.type == TokenType.identifier) {
+                if (parent.type == TokenType.identifier || parent.type == TokenType.application) {
                     parent.type = TokenType.application
                     parent.argument = newToken
+                    stack.push(newToken)
+                } else if (parent.type == TokenType.grouping) {
+                    parent.type = TokenType.application
+                    parent.body = newToken
+                    stack.push(newToken)
                 } else {
                     throw new Error("Wrong parent type")
                 }
-            }
-
-            stack.push(newToken)
+            } else stack.push(newToken)
+            
         }
     }
 
@@ -67,11 +73,42 @@ export function parseCode(codeText: string) {
             curr += char
             if (currStart == -1) currStart = pos
         } else {
-            finish()
+            finishIdent()
+            if (char == "(") {
+                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.grouping, code, body: null } as IToken
+
+                if (stack.length != 0) {
+                    let parent = stack[stack.length - 1]
+                    if (parent.type == TokenType.identifier || parent.type == TokenType.application) {
+                        parent.type = TokenType.application
+                        parent.argument = newToken
+                        stack.push(newToken)
+                        groupStack.push(stack.length)
+                    } else if (parent.type == TokenType.grouping) {
+                        parent.type = TokenType.application
+                        parent.body = newToken
+                        stack.push(newToken)
+                        groupStack.push(stack.length)
+                    } else {
+                        throw new Error("Wrong parent type")
+                    }
+                } else {
+                    stack.push(newToken)
+                    groupStack.push(stack.length)
+                }
+
+                stack.push(newToken)
+            } else if (char == ")") {
+                if (groupStack.length == 0) throw Error("Unbalanced bracket at " + pos)
+                stack.length = groupStack[groupStack.length - 1]
+
+            } else if(char == " ") {
+                // Ignore spaces
+            } else throw new Error("Invalid char at " + pos)
         }
     }
 
-    finish()
+    finishIdent()
 
     code.rootToken = stack[0]
     return code
