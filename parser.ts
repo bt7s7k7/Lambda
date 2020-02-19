@@ -111,6 +111,16 @@ export function parseCode(codeText: string) {
     finishIdent()
 
     code.rootToken = stack[0]
+
+    var visitToken = (token : IToken, parent : IToken) => {
+        if (token == null) return
+        visitToken(token.body, token)
+        visitToken(token.argument, token)
+
+        if (parent && parent.end < token.end) parent.end = token.end
+    }
+    visitToken(code.rootToken, null)
+
     return code
 }
 
