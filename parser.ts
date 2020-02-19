@@ -58,11 +58,20 @@ export function parseCode(codeText: string) {
                     parent.type = TokenType.application
                     parent.body = newToken
                     stack.push(newToken)
+                } else if (parent.type == TokenType.abstraction) {
+                    if (parent.argument == null) {
+                        parent.argument = newToken
+                    } else if (parent.body == null) {
+                        parent.body = newToken
+                        stack.push(newToken)
+                    } else {
+                        throw new Error("For some unknown reason an abstraction has a body and argument but is still on the top of the stack")
+                    }
                 } else {
                     throw new Error("Wrong parent type")
                 }
             } else stack.push(newToken)
-            
+
         }
     }
 
@@ -89,6 +98,14 @@ export function parseCode(codeText: string) {
                         parent.body = newToken
                         stack.push(newToken)
                         groupStack.push(stack.length)
+                    } else if (parent.type == TokenType.abstraction) {
+                        if (parent.argument == null) {
+                            throw new Error("Can't use grouping in function argument")
+                        } else {
+                            parent.body = newToken
+                            stack.push(newToken)
+                            groupStack.push(stack.length)
+                        }
                     } else {
                         throw new Error("Wrong parent type")
                     }
@@ -102,8 +119,36 @@ export function parseCode(codeText: string) {
                 if (groupStack.length == 0) throw Error("Unbalanced bracket at " + pos)
                 stack.length = groupStack[groupStack.length - 1]
 
-            } else if(char == " ") {
+            } else if (char == " ") {
                 // Ignore spaces
+            } else if (char = ">") {
+                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.abstraction, code, body: null } as IToken
+
+                if (stack.length != 0) {
+                    let parent = stack[stack.length - 1]
+                    if (parent.type == TokenType.identifier || parent.type == TokenType.application) {
+                        parent.type = TokenType.application
+                        parent.argument = newToken
+                        stack.push(newToken)
+                    } else if (parent.type == TokenType.grouping) {
+                        parent.type = TokenType.application
+                        parent.body = newToken
+                        stack.push(newToken)
+                    } else if (parent.type == TokenType.abstraction) {
+                        if (parent.argument == null) {
+                            throw new Error("Can't use abstraction in function argument")
+                        } else {
+                            parent.body = newToken
+                            stack.push(newToken)
+                        }
+                    } else {
+                        throw new Error("Wrong parent type")
+                    }
+                } else {
+                    stack.push(newToken)
+                }
+
+                stack.push(newToken)
             } else throw new Error("Invalid char at " + pos)
         }
     }
@@ -112,7 +157,7 @@ export function parseCode(codeText: string) {
 
     code.rootToken = stack[0]
 
-    var visitToken = (token : IToken, parent : IToken) => {
+    var visitToken = (token: IToken, parent: IToken) => {
         if (token == null) return
         visitToken(token.body, token)
         visitToken(token.argument, token)
