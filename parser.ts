@@ -76,3 +76,18 @@ export function parseCode(codeText: string) {
     code.rootToken = stack[0]
     return code
 }
+
+export function debugCode(code: ICode) {
+    var ret = []
+    ret.push(code.text)
+
+    var visit = (token: IToken, path: string) => {
+        ret.push(" ".repeat(token.start) + "-".repeat(token.end - token.start) + " ".repeat(code.text.length - token.end + 1) + path)
+        if (token.argument) visit(token.argument, path + "/a")
+        if (token.body) visit(token.body, path + "/b")
+    }
+
+    if (code.rootToken) visit(code.rootToken, "")
+
+    return ret.join("\n")
+}

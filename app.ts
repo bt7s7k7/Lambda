@@ -1,5 +1,5 @@
 import { createInterface } from "readline"
-import { parseCode } from "./parser"
+import { parseCode, debugCode } from "./parser"
 import { inspect } from "util"
 
 var prompt = createInterface({
@@ -8,5 +8,5 @@ var prompt = createInterface({
 })
 
 prompt.on("line", (line) => {
-    console.log(inspect(parseCode(line), false, 5000, true))
+    console.log(debugCode(parseCode(line)))
 })
