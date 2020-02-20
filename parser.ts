@@ -61,8 +61,9 @@ export function parseCode(codeText: string) {
                 if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
                     parent.type = TokenType.Application
                     if (parent.argument) {
-                        let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: parent, argument: newToken, code } as IToken
-                        stack[stack.length - 1] = prevAssignment
+                        let newBody = Object.assign({}, parent)
+                        let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: newBody, argument: newToken, code } as IToken
+                        Object.assign(parent, prevAssignment)
                     } else {
                         parent.argument = newToken
                     }
@@ -111,8 +112,9 @@ export function parseCode(codeText: string) {
                     if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
                         parent.type = TokenType.Application
                         if (parent.argument) {
-                            let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: parent, argument: newToken, code } as IToken
-                            stack[stack.length - 1] = prevAssignment
+                            let newBody = Object.assign({}, parent)
+                            let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: newBody, argument: newToken, code } as IToken
+                            Object.assign(parent, prevAssignment)
                         } else {
                             parent.argument = newToken
                         }
@@ -158,8 +160,9 @@ export function parseCode(codeText: string) {
                     if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
                         parent.type = TokenType.Application
                         if (parent.argument) {
-                            let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: parent, argument: newToken, code } as IToken
-                            stack[stack.length - 1] = prevAssignment
+                            let newBody = Object.assign({}, parent)
+                            let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: newBody, argument: newToken, code } as IToken
+                            Object.assign(parent, prevAssignment)
                         } else {
                             parent.argument = newToken
                         }
