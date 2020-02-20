@@ -64,8 +64,8 @@ export class State {
                 case TokenType.Application: {
                     let func = token.body == null ? scope.find(tokenText) : evalToken(token.body, scope)
                     if (isError(func)) return func
-                    else if (func == null) return { code, location: token.start, message: "Identifier is not bound" } as ICodeError
-                    else if (func.function == null) return { code, location: token.start, message: "Identifier is not bound to a function" } as ICodeError
+                    else if (func == null) return { code: token.code, location: token.start, message: "Identifier is not bound" } as ICodeError
+                    else if (func.function == null) return { code: token.code, location: token.start, message: "Identifier is not bound to a function" } as ICodeError
 
                     if (token.argument) {
                         let arg = evalToken(token.argument, scope)
