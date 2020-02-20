@@ -49,6 +49,7 @@ function importCode(name: string) {
             let code = parseCode(line)
             if (!isError(code)) evalCode(code, state)
             else throw new Error("Error in module:\n" + debugCode(code))
+            console.log(`Imported ${name}`)
         }
     } else console.log("Unknown module")
 }
@@ -68,7 +69,6 @@ prompt.on("line", (line) => {
         let split = line.split(" ")
         if (split[0] == "import") {
             importCode(split[1])
-            console.log(`Imported ${split[1]}`)
             return
         }
     }
