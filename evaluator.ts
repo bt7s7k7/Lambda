@@ -33,7 +33,7 @@ export class State {
 
     protected boundValues = new Scope()
 
-    public evalCode(code: ICode, debugLog = (line: string) => {}) {
+    public evalCode(code: ICode, debugLog = (line: string) => { }) {
         if (code.rootToken == null) return null
 
         var evalFunc = (func: IValue, arg: IValue) => {
@@ -95,8 +95,12 @@ export class State {
                     break;
             }
         }
-
-        return evalToken(code.rootToken, this.boundValues)
+        try {
+            return evalToken(code.rootToken, this.boundValues)
+        } catch (err) {
+            if (typeof err == "object" && err != null && err instanceof RangeError) console.error(err.message)
+            else throw err
+        }
     }
 }
 
