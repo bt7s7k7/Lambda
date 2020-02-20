@@ -33,15 +33,15 @@ export class State {
 
     protected boundValues = new Scope()
 
-    public evalCode(code: ICode) {
+    public evalCode(code: ICode, debugLog = (line: string) => {}) {
         if (code.rootToken == null) return null
 
         var evalFunc = (func: IValue, arg: IValue) => {
             var argName = func.base.argument.code.text.substr(func.base.argument.start, func.base.argument.end - func.base.argument.start)
             var newScope = new Scope(func.functionScope)
             newScope.bind(argName, arg)
-            console.log(debugCode({ code: func.base.argument.code, message: "Binding argument...", location: func.base.argument.start } as ICodeError))
-            console.log(debugCode({ code: arg.base.code, message: "...from here", location: arg.base.start } as ICodeError))
+            debugLog(debugCode({ code: func.base.argument.code, message: "Binding argument...", location: func.base.argument.start } as ICodeError))
+            debugLog(debugCode({ code: arg.base.code, message: "...from here", location: arg.base.start } as ICodeError))
 
             return evalToken(func.base.body, newScope)
         }
@@ -52,11 +52,11 @@ export class State {
                 case TokenType.Identifier: {
                     let found = scope.find(tokenText)
                     if (found) {
-                        console.log(debugCode({ code: token.code, message: "Dereferencing bound identifier", location: token.start } as ICodeError))
+                        debugLog(debugCode({ code: token.code, message: "Dereferencing bound identifier", location: token.start } as ICodeError))
                         return found
                     }
                     else {
-                        console.log(debugCode({ code: token.code, message: "Free identifier, creating new value", location: token.start } as ICodeError))
+                        debugLog(debugCode({ code: token.code, message: "Free identifier, creating new value", location: token.start } as ICodeError))
                         return { names: [tokenText], function: null, base: token } as IValue
                     }
                     break;
@@ -70,16 +70,16 @@ export class State {
                     if (token.argument) {
                         let arg = evalToken(token.argument, scope)
                         if (isError(arg)) return arg
-                        
+
                         return evalFunc(func, arg)
                     } else {
                         return func
                     }
-                        
+
                     break;
                 }
                 case TokenType.Abstraction: {
-                    console.log(debugCode({ code: token.code, message: "Creating new function", location: token.start } as ICodeError))
+                    debugLog(debugCode({ code: token.code, message: "Creating new function", location: token.start } as ICodeError))
                     return { base: token, function: token, names: [], functionScope: scope } as IValue
                 }
                 case TokenType.Binding: {

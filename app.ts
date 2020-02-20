@@ -22,13 +22,23 @@ C = >f>a>b f b a
     else throw new Error("Error in bootstraper:\n" + debugCode(code))
 }
 
+var debugLogging = false
+
 prompt.on("line", (line) => {
+    if (line == "debug") {
+        debugLogging = !debugLogging
+        console.log(`\nDebug mode is now ${debugLogging ? "enabled" : "disabled"}\n`)
+        return
+     }
     var code = parseCode(line)
     console.log("")
-    console.log(debugCode(code))
-    console.log("")
+    if (debugLogging || isError(code)) {
+        console.log(debugCode(code))
+        console.log("")
+    }
     if (!isError(code)) {
-        let ret = state.evalCode(code)
+        let ret = state.evalCode(code, (l) => { if (debugLogging) console.log(l) })
+        if (debugLogging) console.log("")
         if (isError(ret)) console.log(debugCode(ret))
         else console.log(debugValue(ret))
     }
