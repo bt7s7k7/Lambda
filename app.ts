@@ -11,6 +11,17 @@ var prompt = createInterface({
 
 var state = new State()
 
+for (let line of `
+I = >a a
+K = >a>b a
+KI = K I
+C = >f>a>b f b a
+`.split("\n")) {
+    let code = parseCode(line)
+    if (!isError(code)) state.evalCode(code)
+    else throw new Error("Error in bootstraper:\n" + debugCode(code))
+}
+
 prompt.on("line", (line) => {
     var code = parseCode(line)
     console.log("")
