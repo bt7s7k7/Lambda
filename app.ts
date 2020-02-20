@@ -1,6 +1,6 @@
 import { createInterface } from "readline"
 import { parseCode, debugCode, isError } from "./parser"
-import { State, debugValue } from "./evaluator"
+import { evalCode, debugValue, Scope } from "./evaluator"
 import { inspect } from "util"
 
 var prompt = createInterface({
@@ -9,7 +9,7 @@ var prompt = createInterface({
     prompt: ""
 })
 
-var state = new State()
+var state = new Scope()
 
 
 
@@ -20,6 +20,9 @@ K = >a>b a
 KI = K I
 C = >f>a>b f b a
 M = >a a a
+count = >a a
+n0 = >f>a a
+succ = >n>f>a f(n f a)
 `,
     logic: `
 true = K
@@ -36,7 +39,7 @@ function importCode(name: string) {
     if (name in codeModules) {
         for (let line of codeModules[name].split("\n")) {
             let code = parseCode(line)
-            if (!isError(code)) state.evalCode(code)
+            if (!isError(code)) evalCode(code, state)
             else throw new Error("Error in module:\n" + debugCode(code))
         }
     } else console.log("Unknown module")
@@ -69,7 +72,7 @@ prompt.on("line", (line) => {
         console.log("")
     }
     if (!isError(code)) {
-        let ret = state.evalCode(code, (l) => { if (debugLogging) console.log(l) })
+        let ret = evalCode(code, state, (l) => { if (debugLogging) console.log(l) })
         if (debugLogging) console.log("")
         if (isError(ret)) console.log(debugCode(ret))
         else console.log(debugValue(ret))
