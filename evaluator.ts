@@ -72,7 +72,7 @@ export class State {
                     let arg = evalToken(token.argument, scope)
                     if (isError(arg)) return arg
 
-                    return evalFunc(func, arg, scope)
+                    return evalFunc(func, arg)
 
                     break;
                 }
