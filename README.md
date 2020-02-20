@@ -12,16 +12,18 @@ C = >f>a>b f b a
 ````
 
 Type command `debug` to activate debug mode. It will print expression makeup and step by step reduction.
+
+There are some premade modules with functions. Import a module using `import <name>` command. Modules:
+````
+std - Imported by default, contains identity, kestrel...
+logic - Contains true, false, and, or...
+````
 ## Example
-- Identity function
+- Define identity function
 ````
 I = >a a
 ````
-- Kestrel function
+- Define logical and
 ````
-K = >a>b a
-````
-- Kite function
-````
-KI = K I
+and = >a>b a (b true false) false
 ````
