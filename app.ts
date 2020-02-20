@@ -27,6 +27,8 @@ false = KI
 not = >a a false true
 and = >a>b a (b true false) false
 or = >a>b a true (b true false)
+beq = >a>b a (b true false) (b false true)
+xor = >a>b not (beq a b)
 `
 }
 
