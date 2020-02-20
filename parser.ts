@@ -172,7 +172,7 @@ export function parseCode(codeText: string) {
                 stack.push(newToken)
             } else if (char == "=") {
                 if (stack.length != 1) return makeError("Binding must be used after one identifier")
-                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.Abstraction, code, body: null } as IToken
+                let newToken = { start: pos, end: pos + 1, argument: null, type: TokenType.Binding, code, body: null } as IToken
                 let ident = stack[0]
                 if (ident.type == TokenType.Identifier) {
                     stack[0] = newToken

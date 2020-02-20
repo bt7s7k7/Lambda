@@ -24,9 +24,7 @@ export class Scope {
     }
 
     public bind(key: string, value: IValue) {
-        if (key in this.values) return `Key ${key} is already bound to a value`
         this.values[key] = value
-        return null
     }
 }
 
@@ -40,10 +38,9 @@ export class State {
         var evalFunc = (func: IValue, arg: IValue) => {
             var argName = func.base.argument.code.text.substr(func.base.argument.start, func.base.argument.end - func.base.argument.start)
             var newScope = new Scope(func.functionScope)
-            var bindError = newScope.bind(argName, arg)
+            newScope.bind(argName, arg)
             console.log(debugCode({ code: func.base.argument.code, message: "Binding argument...", location: func.base.argument.start } as ICodeError))
             console.log(debugCode({ code: arg.base.code, message: "...from here", location: arg.base.start } as ICodeError))
-            if (bindError) return { code: code, location: func.base.start, message: bindError } as ICodeError
 
             return evalToken(func.base.body, newScope)
         }
@@ -79,6 +76,14 @@ export class State {
                 case TokenType.Abstraction: {
                     console.log(debugCode({ code: token.code, message: "Creating new function", location: token.start } as ICodeError))
                     return { base: token, function: token, names: [], functionScope: scope } as IValue
+                }
+                case TokenType.Binding: {
+                    let name = token.argument.code.text.substr(token.argument.start, token.argument.end - token.argument.start)
+                    let value = evalToken(token.body, scope)
+                    if (isError(value)) return value
+                    value.names.push(name)
+                    this.boundValues.bind(name, value)
+                    return value
                 }
 
                 default:
