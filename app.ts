@@ -19,6 +19,7 @@ I = >a a
 K = >a>b a
 KI = K I
 C = >f>a>b f b a
+M = >a a a
 `,
     logic: `
 true = K
