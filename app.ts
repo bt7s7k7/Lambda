@@ -23,6 +23,7 @@ M = >a a a
 count = >a a
 n0 = >f>a a
 succ = >n>f>a f(n f a)
+B = >f>g>a f(g a)
 `,
     logic: `
 true = K
