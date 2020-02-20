@@ -4,11 +4,13 @@
   "description": "Simple lambda calculus implementation",
   "main": "build/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node ./build/app.js"
   },
   "author": "bt7s7k7",
   "license": "MIT",
   "dependencies": {
-    "@types/node": "^13.7.3"
+    "@types/node": "^13.7.4",
+    "typescript": "^3.7.5"
   }
 }
