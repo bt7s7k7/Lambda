@@ -6,7 +6,12 @@ export function isLetter(char: string) {
 export interface ICode {
     rootToken: IToken
     text: string
-    error: { location: number, message: string } | null
+}
+
+export interface ICodeError {
+    location: number
+    message: string
+    code: ICode
 }
 
 export enum TokenType {
@@ -20,12 +25,14 @@ export enum TokenType {
 export interface IToken {
     start: number
     end: number
+    expEnd: number
     argument: IToken
     /** Body of an abstraction, only needed when type == abstraction */
     body: IToken
     type: TokenType
     code: ICode
 }
+
 /*
 
    a a
@@ -78,8 +85,7 @@ export function parseCode(codeText: string) {
     }
 
     var makeError = (message: string) => {
-        code.error = { message, location: pos }
-        return code
+        return { message, location: pos, code: code } as ICodeError
     }
 
     for (; pos < codeText.length; pos++) {
@@ -126,6 +132,11 @@ export function parseCode(codeText: string) {
 
                 stack.push(newToken)
             } else if (char == ")") {
+                let top = stack[stack.length - 1]
+                if (top && top.type == TokenType.Abstraction) {
+                    if (top.argument == null) return makeError("Abstraction missing argument identifier")
+                    if (top.body == null) return makeError("Abstraction missing body tokens")
+                }
                 if (groupStack.length == 0) return makeError("Unbalanced bracket")
                 stack.length = groupStack[groupStack.length - 1]
                 groupStack.pop()
@@ -181,30 +192,38 @@ export function parseCode(codeText: string) {
 
     var visitToken = (token: IToken, parent: IToken) => {
         if (token == null) return
+        token.expEnd = token.end
         visitToken(token.body, token)
         visitToken(token.argument, token)
 
-        if (parent && parent.end < token.end) parent.end = token.end
+        if (parent)
+            if (parent.expEnd < token.expEnd) parent.expEnd = token.expEnd
     }
     visitToken(code.rootToken, null)
 
     return code
 }
 
-export function debugCode(code: ICode) {
-    var ret = []
-    ret.push(code.text)
+export function isError(target: ICodeError | any): target is ICodeError {
+    if (typeof target != "object" || target == null) return false
+    return "message" in target && "location" in target
+}
 
-    if (code.error) {
-        ret.push(" ".repeat(code.error.location) + "^ " + code.error.message)
+export function debugCode(target: ICode | ICodeError) {
+    var ret = []
+    
+    if (isError(target)) {
+        ret.push(target.code.text)
+        ret.push(" ".repeat(target.location) + "^ " + target.message)
     } else {
+        ret.push(target.text)
         var visit = (token: IToken, path: string) => {
-            ret.push(" ".repeat(token.start) + "-".repeat(token.end - token.start) + " ".repeat(code.text.length - token.end + 1) + path)
+            ret.push(" ".repeat(token.start) + "-".repeat(token.expEnd - token.start) + " ".repeat(target.text.length - token.expEnd + 1) + path)
             if (token.argument) visit(token.argument, path + "/a")
             if (token.body) visit(token.body, path + "/b")
         }
 
-        if (code.rootToken) visit(code.rootToken, "")
+        if (target.rootToken) visit(target.rootToken, "")
     }
 
     return ret.join("\n")
