@@ -60,8 +60,12 @@ export function parseCode(codeText: string) {
                 let parent = stack[stack.length - 1]
                 if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
                     parent.type = TokenType.Application
-                    parent.argument = newToken
-                    stack.push(newToken)
+                    if (parent.argument) {
+                        let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: parent, argument: newToken, code } as IToken
+                        stack[stack.length - 1] = prevAssignment
+                    } else {
+                        parent.argument = newToken
+                    }
                 } else if (parent.type == TokenType.Grouping || parent.type == TokenType.Binding) {
                     if (parent.type == TokenType.Grouping) parent.type = TokenType.Application
                     parent.body = newToken
@@ -106,8 +110,12 @@ export function parseCode(codeText: string) {
                     let parent = stack[stack.length - 1]
                     if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
                         parent.type = TokenType.Application
-                        parent.argument = newToken
-                        stack.push(newToken)
+                        if (parent.argument) {
+                            let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: parent, argument: newToken, code } as IToken
+                            stack[stack.length - 1] = prevAssignment
+                        } else {
+                            parent.argument = newToken
+                        }
                         groupStack.push(stack.length)
                     } else if (parent.type == TokenType.Grouping || parent.type == TokenType.Binding) {
                         if (parent.type == TokenType.Grouping) parent.type = TokenType.Application
@@ -148,9 +156,13 @@ export function parseCode(codeText: string) {
                 if (stack.length != 0) {
                     let parent = stack[stack.length - 1]
                     if (parent.type == TokenType.Identifier || parent.type == TokenType.Application) {
-                        if (parent.type == TokenType.Identifier) parent.type = TokenType.Application
-                        parent.argument = newToken
-                        stack.push(newToken)
+                        parent.type = TokenType.Application
+                        if (parent.argument) {
+                            let prevAssignment = { start: parent.start, end: pos, expEnd: pos, type: TokenType.Application, body: parent, argument: newToken, code } as IToken
+                            stack[stack.length - 1] = prevAssignment
+                        } else {
+                            parent.argument = newToken
+                        }
                     } else if (parent.type == TokenType.Grouping || parent.type == TokenType.Binding) {
                         if (parent.type == TokenType.Grouping) parent.type = TokenType.Application
                         parent.body = newToken
@@ -211,14 +223,14 @@ export function isError(target: ICodeError | any): target is ICodeError {
 
 export function debugCode(target: ICode | ICodeError) {
     var ret = []
-    
+
     if (isError(target)) {
         ret.push(target.code.text)
         ret.push(" ".repeat(target.location) + "^ " + target.message)
     } else {
         ret.push(target.text)
         var visit = (token: IToken, path: string) => {
-            ret.push(" ".repeat(token.start) + "-".repeat(token.expEnd - token.start) + " ".repeat(target.text.length - token.expEnd + 1) + path)
+            ret.push(" ".repeat(token.start) + "-".repeat(token.expEnd - token.start) + " ".repeat(target.text.length - token.expEnd + 1) + path + " " + TokenType[token.type])
             if (token.argument) visit(token.argument, path + "/a")
             if (token.body) visit(token.body, path + "/b")
         }

@@ -34,6 +34,7 @@ export class State {
     protected boundValues = new Scope()
 
     public evalCode(code: ICode) {
+        if (code.rootToken == null) return null
 
         var evalFunc = (func: IValue, arg: IValue) => {
             var argName = func.base.argument.code.text.substr(func.base.argument.start, func.base.argument.end - func.base.argument.start)
@@ -66,11 +67,15 @@ export class State {
                     else if (func == null) return { code, location: token.start, message: "Identifier is not bound" } as ICodeError
                     else if (func.function == null) return { code, location: token.start, message: "Identifier is not bound to a function" } as ICodeError
 
-                    let arg = evalToken(token.argument, scope)
-                    if (isError(arg)) return arg
-
-                    return evalFunc(func, arg)
-
+                    if (token.argument) {
+                        let arg = evalToken(token.argument, scope)
+                        if (isError(arg)) return arg
+                        
+                        return evalFunc(func, arg)
+                    } else {
+                        return func
+                    }
+                        
                     break;
                 }
                 case TokenType.Abstraction: {
@@ -96,12 +101,13 @@ export class State {
 }
 
 export function debugValue(value: IValue) {
+    if (value == null) return "No value returned"
     var ret = [] as string[]
     ret.push("Value names: " + value.names.join(", "))
     if (value.function) {
-        ret.push(debugCode({code: value.function.code, message: "Value is a function defined here", location: value.function.start} as ICodeError))
+        ret.push(debugCode({ code: value.function.code, message: "Value is a function defined here", location: value.function.start } as ICodeError))
     } else if (value.base) {
-        ret.push(debugCode({code: value.base.code, message: "Value is a free identifier created here", location: value.base.start} as ICodeError))
+        ret.push(debugCode({ code: value.base.code, message: "Value is a free identifier created here", location: value.base.start } as ICodeError))
     }
 
     return ret.join("\n")
