@@ -24,6 +24,7 @@ count = >a a
 n0 = >f>a a
 succ = >n>f>a f(n f a)
 B = >f>g>a f(g a)
+V = >a>b>f f a b
 `,
     logic: `
 true = K
@@ -33,6 +34,12 @@ and = >a>b a b false
 or = >a>b a true b
 beq = >a>b a b (not b)
 xor = >a>b a (not b) b
+`,
+    numbers: `
+add = >a>b a succ b  
+mul = >a>b a (>c add b c) n0
+pow = >b>a a (>c mul b c) n1
+isz = >a a (K false) true
 `
 }
 
